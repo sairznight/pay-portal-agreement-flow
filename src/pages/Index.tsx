@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CreditCard, Building2, Send, Smartphone, DollarSign, Globe } from 'lucide-react';
 import PaymentMethodCard from '../components/PaymentMethodCard';
@@ -61,6 +60,21 @@ const Index = () => {
     }
   ];
 
+  // Calculate fee for credit card payments
+  const calculateFee = () => {
+    if (selectedPayment === 'credit-card' && amount) {
+      return parseFloat(amount) * 0.035;
+    }
+    return 0;
+  };
+
+  const calculateTotal = () => {
+    if (amount) {
+      return parseFloat(amount) + calculateFee();
+    }
+    return 0;
+  };
+
   const handlePaymentSelect = (paymentId: string) => {
     setSelectedPayment(paymentId);
   };
@@ -77,7 +91,9 @@ const Index = () => {
     // Here you would typically proceed with the actual payment processing
     console.log('Agreement signed, proceeding with payment:', {
       method: selectedPayment,
-      amount: amount
+      amount: amount,
+      fee: calculateFee(),
+      total: calculateTotal()
     });
   };
 
@@ -140,7 +156,17 @@ const Index = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-semibold">${amount}</span>
+                <span className="font-semibold">${parseFloat(amount).toFixed(2)}</span>
+              </div>
+              {selectedPayment === 'credit-card' && calculateFee() > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Processing Fee (3.5%):</span>
+                  <span className="font-semibold">${calculateFee().toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t pt-2">
+                <span className="text-gray-600 font-semibold">Total:</span>
+                <span className="font-bold text-lg">${calculateTotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Method:</span>
@@ -184,7 +210,7 @@ const Index = () => {
         onClose={() => setShowAgreement(false)}
         onSign={handleAgreementSigned}
         paymentMethod={paymentMethods.find(m => m.id === selectedPayment)?.name || ''}
-        amount={amount}
+        amount={calculateTotal().toFixed(2)}
       />
     </div>
   );
